@@ -16,6 +16,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.Gson
 import dev.kwasi.echoservercomplete.chatlist.ChatListAdapter
 import dev.kwasi.echoservercomplete.models.ContentModel
 import dev.kwasi.echoservercomplete.network.Client
@@ -25,6 +26,15 @@ import dev.kwasi.echoservercomplete.peerlist.PeerListAdapter
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapterInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectManager
+import java.security.MessageDigest
+import kotlin.text.Charsets.UTF_8
+import javax.crypto.spec.SecretKeySpec
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.SecretKey
+import javax.crypto.Cipher
+import kotlin.concurrent.thread
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerListAdapterInterface, NetworkMessageInterface {
     private var wfdManager: WifiDirectManager? = null
@@ -45,6 +55,8 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     private var server: Server? = null
     private var client: Client? = null
     private var deviceIp: String = ""
+    private var validID = false
+    private var seedPlaintext: String? = " "
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,7 +101,13 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     }
 
     fun discoverNearbyPeers(view: View) {
-        wfdManager?.discoverPeers()
+        isValidID()
+        if(validID){
+            wfdManager?.discoverPeers()
+            val text: EditText = findViewById(R.id.editTextNumber)
+            seedPlaintext = text.toString()
+        }
+        else updateUI()
     }
 
     private fun updateUI(){
@@ -108,7 +126,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         wfdNoConnectionView.visibility = if (wfdAdapterEnabled && !wfdHasConnection) View.VISIBLE else View.GONE
 
         val rvPeerList: RecyclerView= findViewById(R.id.rvPeerListing)
-        rvPeerList.visibility = if (wfdAdapterEnabled && !wfdHasConnection && hasDevices) View.VISIBLE else View.GONE
+        rvPeerList.visibility = if (wfdAdapterEnabled && !wfdHasConnection && hasDevices && validID) View.VISIBLE else View.GONE
 
         val wfdConnectedView:ConstraintLayout = findViewById(R.id.clHasConnection)
         wfdConnectedView.visibility = if(wfdHasConnection)View.VISIBLE else View.GONE
@@ -122,6 +140,32 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         client?.sendMessage(content)
         chatListAdapter?.addItemToEnd(content)
 
+    }
+    fun sendMessagePlain(view: View) {
+        val etMessage:EditText = findViewById(R.id.etMessage)
+        val etString = etMessage.text.toString()
+        val content = ContentModel(etString, deviceIp)
+        etMessage.text.clear()
+        client?.sendMessagePlain(content)
+
+    }
+
+
+    private fun isValidID(){
+        val et: EditText = findViewById(R.id.editTextNumber)
+
+        val value = et.text.toString().toIntOrNull()
+        var text = "ID is "
+        if (value != null && value in 810000000 until 900000000) {
+            text="Updating Listings..."
+            validID = true
+        } else {
+            text="ID is  invalid"
+            validID = false
+        }
+
+        val toast = Toast.makeText(this, text, Toast.LENGTH_SHORT)
+        toast.show()
     }
 
     override fun onWiFiDirectStateChanged(isEnabled: Boolean) {
@@ -159,17 +203,22 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         if (groupInfo == null){
             server?.close()
             client?.close()
+            Toast.makeText(this, "No Group Info" , Toast.LENGTH_SHORT).show()
         } else if (groupInfo.isGroupOwner && server == null){
             server = Server(this)
             deviceIp = "192.168.49.1"
         } else if (!groupInfo.isGroupOwner && client == null) {
-            client = Client(this)
+            client = Client(this, seedPlaintext.toString())
             deviceIp = client!!.ip
+            Toast.makeText(this, "Client-side" , Toast.LENGTH_SHORT).show()
+            val content = ContentModel("I am here", deviceIp)
+            client?.sendMessagePlain(content)
         }
     }
 
     override fun onDeviceStatusChanged(thisDevice: WifiP2pDevice) {
         val toast = Toast.makeText(this, "Device parameters have been updated" , Toast.LENGTH_SHORT)
+
         toast.show()
     }
 
@@ -183,5 +232,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             chatListAdapter?.addItemToEnd(content)
         }
     }
+
+
+
+
 
 }
