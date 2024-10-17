@@ -147,7 +147,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val et: EditText = findViewById(R.id.editTextNumber)
 
         val value = et.text.toString().toIntOrNull()
-        var text = "ID is "
+        var text = " "
         if (value != null && value in 810000000 until 900000000) {
             text="Updating Listings..."
             validID = true
