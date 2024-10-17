@@ -26,15 +26,7 @@ import dev.kwasi.echoservercomplete.peerlist.PeerListAdapter
 import dev.kwasi.echoservercomplete.peerlist.PeerListAdapterInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectInterface
 import dev.kwasi.echoservercomplete.wifidirect.WifiDirectManager
-import java.security.MessageDigest
-import kotlin.text.Charsets.UTF_8
-import javax.crypto.spec.SecretKeySpec
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.SecretKey
-import javax.crypto.Cipher
-import kotlin.concurrent.thread
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
+
 
 class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerListAdapterInterface, NetworkMessageInterface {
     private var wfdManager: WifiDirectManager? = null
@@ -96,9 +88,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             unregisterReceiver(it)
         }
     }
-    fun createGroup(view: View) {
-        wfdManager?.createGroup()
-    }
+//    fun createGroup(view: View) {
+//        wfdManager?.createGroup()
+//    }
 
     fun discoverNearbyPeers(view: View) {
         isValidID()
@@ -141,14 +133,14 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         chatListAdapter?.addItemToEnd(content)
 
     }
-    fun sendMessagePlain(view: View) {
-        val etMessage:EditText = findViewById(R.id.etMessage)
-        val etString = etMessage.text.toString()
-        val content = ContentModel(etString, deviceIp)
-        etMessage.text.clear()
-        client?.sendMessagePlain(content)
-
-    }
+//    fun sendMessagePlain(view: View) {
+//        val etMessage:EditText = findViewById(R.id.etMessage)
+//        val etString = etMessage.text.toString()
+//        val content = ContentModel(etString, deviceIp)
+//        etMessage.text.clear()
+//        client?.sendMessagePlain(content)
+//
+//    }
 
 
     private fun isValidID(){

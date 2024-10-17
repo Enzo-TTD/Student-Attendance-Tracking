@@ -44,6 +44,7 @@ class Client (private val networkMessageInterface: NetworkMessageInterface, seed
                             //unsure if onContent displays the msg, if it dont remove this if statement
                         }
                         val serverContent = Gson().fromJson(serverResponse, ContentModel::class.java)
+                        decryptMessage(serverContent.message,aesKey, aesIV)
                         networkMessageInterface.onContent(serverContent)
                     }
                 } catch(e: Exception){
@@ -94,7 +95,7 @@ class Client (private val networkMessageInterface: NetworkMessageInterface, seed
     private fun hashStrSha256(str: String): String{
         val algorithm = "SHA-256"
         val hashedString = MessageDigest.getInstance(algorithm).digest(str.toByteArray(UTF_8))
-        return hashedString.toHex();
+        return hashedString.toHex()
     }
 
     private fun generateAESKey(seed: String): SecretKeySpec {
