@@ -34,18 +34,26 @@ class Client (private val networkMessageInterface: NetworkMessageInterface, seed
             writer = clientSocket.outputStream.bufferedWriter()
             ip = clientSocket.inetAddress.hostAddress!!
             while(true){
+                if(firstMsg){
+                    val firstContent = ContentModel("I am here", ip)
+                    sendMessagePlain(firstContent)
+                    //networkMessageInterface.onContent(firstContent)
+                    //firstMsg = false
+                }
                 try{
                     val serverResponse = reader.readLine()
                     if (serverResponse != null){
-                        if(firstMsg){
-                            val serverContent = Gson().fromJson(serverResponse, ContentModel::class.java)
-                            sendMessage(serverContent)
-                            firstMsg = false
-                            //unsure if onContent displays the msg, if it dont remove this if statement
-                        }
                         val serverContent = Gson().fromJson(serverResponse, ContentModel::class.java)
-                        decryptMessage(serverContent.message,aesKey, aesIV)
-                        networkMessageInterface.onContent(serverContent)
+                        if(firstMsg){
+                            //serverContent.message=encryptMessage(serverContent.message, aesKey, aesIV)
+                            sendMessage(serverContent)
+                            //networkMessageInterface.onContent(serverContent)
+                            firstMsg=false
+                        }else{
+                            val temp=serverContent.message.reversed()
+                            serverContent.message=decryptMessage(temp,aesKey, aesIV)
+                            networkMessageInterface.onContent(serverContent)
+                        }
                     }
                 } catch(e: Exception){
                     Log.e("CLIENT", "An error has occurred in the client")
@@ -62,7 +70,8 @@ class Client (private val networkMessageInterface: NetworkMessageInterface, seed
                 throw Exception("We aren't currently connected to the server!")
             }
 
-            encryptMessage(content.message, aesKey, aesIV)
+
+            content.message=encryptMessage(content.message, aesKey, aesIV)
             val contentAsStr:String = Gson().toJson(content)
             writer.write("$contentAsStr\n")
             writer.flush()
@@ -70,7 +79,7 @@ class Client (private val networkMessageInterface: NetworkMessageInterface, seed
 
     }
 
-    fun sendMessagePlain(content: ContentModel){
+    private fun sendMessagePlain(content: ContentModel){
         thread {
             if (!clientSocket.isConnected){
                 throw Exception("We aren't currently connected to the server!")

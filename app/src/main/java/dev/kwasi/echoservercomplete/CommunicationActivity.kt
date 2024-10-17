@@ -7,6 +7,7 @@ import android.net.wifi.p2p.WifiP2pGroup
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -95,6 +96,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
     fun discoverNearbyPeers(view: View) {
         isValidID()
         if(validID){
+            hideKeyboard()
             wfdManager?.discoverPeers()
             val text: EditText = findViewById(R.id.editTextNumber)
             seedPlaintext = text.toString()
@@ -128,19 +130,13 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         val etMessage:EditText = findViewById(R.id.etMessage)
         val etString = etMessage.text.toString()
         val content = ContentModel(etString, deviceIp)
+        val str = content
         etMessage.text.clear()
         client?.sendMessage(content)
-        chatListAdapter?.addItemToEnd(content)
+        chatListAdapter?.addItemToEnd(str)
 
     }
-//    fun sendMessagePlain(view: View) {
-//        val etMessage:EditText = findViewById(R.id.etMessage)
-//        val etString = etMessage.text.toString()
-//        val content = ContentModel(etString, deviceIp)
-//        etMessage.text.clear()
-//        client?.sendMessagePlain(content)
-//
-//    }
+
 
 
     private fun isValidID(){
@@ -202,9 +198,9 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         } else if (!groupInfo.isGroupOwner && client == null) {
             client = Client(this, seedPlaintext.toString())
             deviceIp = client!!.ip
-            Toast.makeText(this, "Client-side" , Toast.LENGTH_SHORT).show()
-            val content = ContentModel("I am here", deviceIp)
-            client?.sendMessagePlain(content)
+            //val content = ContentModel("I am here", deviceIp)
+            //client?.sendMessagePlain(content)
+
         }
     }
 
@@ -225,6 +221,14 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
         }
     }
 
+    private fun hideKeyboard() {
+        // Get the current focus
+        val view = this.currentFocus
+        if (view != null) {
+            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(view.windowToken, 0)
+        }
+    }
 
 
 
