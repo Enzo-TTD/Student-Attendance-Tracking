@@ -98,7 +98,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
             hideKeyboard()
             wfdManager?.discoverPeers()
             val text: EditText = findViewById(R.id.editTextNumber)
-            seedPlaintext = text.toString()
+            seedPlaintext = text.text.toString()
         }
         else updateUI()
     }
@@ -143,7 +143,7 @@ class CommunicationActivity : AppCompatActivity(), WifiDirectInterface, PeerList
 
         val value = et.text.toString().toIntOrNull()
         var text = " "
-        if (value != null && value in 810000000 until 900000000) {
+        if (value != null && value in 816000000 until 817000000) {
             text="Updating Listings..."
             validID = true
         } else {

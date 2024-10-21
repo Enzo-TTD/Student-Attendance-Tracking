@@ -50,7 +50,7 @@ class Client (private val networkMessageInterface: NetworkMessageInterface, seed
                             //networkMessageInterface.onContent(serverContent)
                             firstMsg=false
                         }else{
-                            val temp=serverContent.message.reversed()
+                            val temp=serverContent.message
                             serverContent.message=decryptMessage(temp,aesKey, aesIV)
                             networkMessageInterface.onContent(serverContent)
                         }
